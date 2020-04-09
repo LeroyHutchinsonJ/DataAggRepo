@@ -1,12 +1,12 @@
 var http = require("http");
 var request = require("request");
-
+var fs = require('fs');
 var request_body = undefined;
 
 function createHtmlStringFromJson(retrievedData)
 {
     //This creates the beginning of the html string
-    var htmlString = '<html><head><title>Data Aggregator</title></head><body><table>';
+    var htmlString = '<html><head><link rel="stylesheet" type="text/css" href="index.css"><title>Data Aggregator</title></head><body><table>';
 
     //This adds a row to the html string
     htmlString += '<tr>';
@@ -50,11 +50,20 @@ http.createServer(function(req, res)
 {
     if(request_body)
     {
+        /*
         res.writeHead(200,{'Content-Type': 'text/html'});
         res.end(createHtmlStringFromJson(JSON.parse(request_body)));
+         */
+        //This posts the html page but for some reason it does not also post the stylesheet
+        fs.readFile('index.html', function(err, data){
+            res.writeHead(200, {'Content-Type' : 'text/html'});
+            res.write(createHtmlStringFromJson(JSON.parse(request_body)));
+            res.end();
+        })
     }
     else {
         res.writeHead(200, {'Content-Type' : 'text/plain'});
         res.end('Nothing retrieved yet');
+
     }
 }).listen(8080);
