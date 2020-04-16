@@ -37,7 +37,6 @@ setInterval( () => {
         });
 }, 2000);
 
-
     http.createServer( function(req, res)
     {
         //If the request body has something in it
@@ -48,7 +47,6 @@ setInterval( () => {
 
             //Parse the request url using the url package
             var requestUrl = url.parse(req.url);
-
             //This refreshes the data every 2 seconds
                 //Check the path of the request url
                 switch(requestUrl.path)
