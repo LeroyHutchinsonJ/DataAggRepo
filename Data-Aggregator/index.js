@@ -1,13 +1,17 @@
 var http = require("http");
 var request = require("request");
 var fs = require('fs');
-var request_body = undefined;
 var csv = require('csv');
+
+//This will allow me to check the url of the data and see if it has json or csv at the end of it
+var url = require('url');
+
+var request_body = undefined;
 var html_content = undefined;
 
-//This is the json data and the csv data
-var jsonRequestData = undefined;
-var csvRequestData = undefined;
+//Since I am going to pick which one to use, i need two different variables, one for json one for csv
+var csvRequestBody = undefined;
+var jsonRequestBody = undefined;
 
 function createHtmlStringFromJson(retrievedData)
 {
@@ -54,7 +58,7 @@ function createHtmlStringFromJson(retrievedData)
         htmlString += '</tr>\n';
     });
     htmlString += '</table>';
-    console.log(string_from_body.toString());
+
     //The string_until_body gets everything before the body tag, the string after body is everything after the body tag
     return string_until_body + htmlString + string_from_body;
 }
@@ -102,22 +106,22 @@ function createHtmlStringFromCsv(retrievedData)
     return string_until_body + htmlString + string_from_body;
 }
 
-/*
-//This is to get the raw string data from the link
+
+//This gets the data from the link and puts it in request_body
 request('https://www.bnefoodtrucks.com.au/api/1/trucks', function(err, request_res, body)
     {
-        request_body = body;
+        jsonRequestBody = body;
     }
 );
-*/
 
-//The csv function is an external module that i need to be able to parse csv string into an object
+    //This gets the data from the link and puts it in request body
 request('https://www.data.brisbane.qld.gov.au/data/dataset/1e11bcdd-fab1-4ec5-b671-396fd1e6dd70/resource/3c972b8e-9340-4b6d-8c7b-2ed988aa3343/download/public-art-open-data-2019-06-10.csv',
     function(err, request_req, body)
     {
+        //This is to parse the csv in a format that i can store in the requestBody variable
         csv.parse(body, function(err, data)
         {
-            request_body = data;
+            csvRequestBody = data;
         });
 
     });
@@ -126,17 +130,30 @@ request('https://www.data.brisbane.qld.gov.au/data/dataset/1e11bcdd-fab1-4ec5-b6
 http.createServer(function(req, res)
 {
     //If the request body has something in it
-    if(request_body && html_content)
+    if(csvRequestBody && jsonRequestBody && html_content)
     {
+        //Send out the result in html format
         res.writeHead(200, {'Content-Type' :'text/html'});
-        //request_body is the string that the link returns, JSON.parse turns the string into a json object
-       // res.end(createHtmlStringFromJson(JSON.parse(request_body)))
-        res.end(createHtmlStringFromCsv(request_body));
+
+        //Parse the request url using the url package
+        var requestUrl = url.parse(req.url);
+
+        //Check the path of the request url
+        switch(requestUrl.path)
+        {
+            case "/json":
+                //Send out the json info after parsing json request body into actual json
+                res.end(createHtmlStringFromJson(JSON.parse(jsonRequestBody)));
+                break;
+            case "/csv":
+                //Send out the csv info, it is parsed inside of the function so I dont need to do it here
+                res.end(createHtmlStringFromCsv(csvRequestBody));
+                break;
+        }
     }
     else {
         res.writeHead(200, {'Content-Type' : 'text/plain'});
         res.end('Nothing retrieved yet');
-
     }
 }).listen(8080);
 
