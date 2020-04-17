@@ -27,13 +27,13 @@ exports.updateLogFile = function(message)
         var numberOfAccesses = parseInt(firstLine.slice(accessCounterIndex+2));
 
         //We increment number accesses by 1 and update the first line
-        lines[0] = "Number of accesses: " + (numberOfAccesses + 1);
+        lines[0] = "Number of times accessed: " + (numberOfAccesses + 1);
 
         //We add a new message after the current message in the log file
         var newLogContent = lines.join('\n') + message + '\n';
 
         //Add the new log content to the log txt
-        fs.writeLine('log.txt', newLogContent, function(err){
+        fs.writeFile('log.txt', newLogContent, function(err){
             if(err)
             {
                 throw err;

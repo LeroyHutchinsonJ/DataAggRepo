@@ -2,18 +2,18 @@ var http = require("http");
 var request = require("request");
 var fs = require('fs');
 var csv = require('csv');
-
 //This imports the create_html file
 var create_html = require('./create_html');
-
 //Request comes from client, response goes to client
 //This will allow me to check the url of the data and see if it has json or csv at the end of it
 var url = require('url');
 
+//This imports the update_log file information
+var update_log = require('./update_log');
 
 var html_content = undefined;
 
-//Since I am going to pick which one to use, i need two different variables, one for json one for csv
+//Since I am going to pick which one to use, I need two different variables, one for json one for csv
 var csvRequestBody = undefined;
 var jsonRequestBody = undefined;
 
@@ -54,10 +54,12 @@ setInterval( () => {
                     case "/json":
                         //Send out the json info after parsing json request body into actual json
                         res.end(create_html.createHtmlStringFromJson(JSON.parse(jsonRequestBody), html_content));
+                        update_log.updateLogFile("Accessed JSON data");
                         break;
                     case "/csv":
                         //Send out the csv info, it is parsed inside of the function so I dont need to do it here
                         res.end(create_html.createHtmlStringFromCsv(csvRequestBody, html_content));
+                        update_log.updateLogFile("Accessed CSV data");
                         break;
                 }
 
